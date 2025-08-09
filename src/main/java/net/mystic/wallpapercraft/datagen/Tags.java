@@ -1,25 +1,28 @@
 package net.mystic.wallpapercraft.datagen;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.tags.BlockTagsProvider;
+import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Material;
+import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.mystic.wallpapercraft.Wallpapercraft;
 import net.mystic.wallpapercraft.blocks.IDecorativeBlock;
 import net.mystic.wallpapercraft.blocks.ModBlocks;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.concurrent.CompletableFuture;
 
 public class Tags extends BlockTagsProvider {
-
-    public Tags( DataGenerator generator, ExistingFileHelper helper ) {
-        super( generator, Wallpapercraft.MODID, helper );
+    public Tags(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, String modId, @Nullable ExistingFileHelper existingFileHelper) {
+        super(output, lookupProvider, modId, existingFileHelper);
     }
 
-    //region Overrides
     @Override
-    protected void addTags() {
+    protected void addTags(HolderLookup.Provider p_256380_) {
         for ( final IDecorativeBlock b : ModBlocks.BLOCKS.values() ) {
 
             final Block block = ForgeRegistries.BLOCKS.getValue( Wallpapercraft.getId( b.getNameForRegistry() ) );

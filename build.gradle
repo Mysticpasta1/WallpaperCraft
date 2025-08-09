@@ -70,11 +70,11 @@ dependencies {
     minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
     // JEI API (compileOnly) + full mod at runtime
-    compileOnly fg.deobf("mezz.jei:jei-1.19.2-common-api:11.8.1.1034")
-    compileOnly fg.deobf("mezz.jei:jei-1.19.2-forge-api:11.8.1.1034")
-    compileOnly fg.deobf("mezz.jei:jei-1.19.2-gui:11.8.1.1034")
+    compileOnly fg.deobf("mezz.jei:jei-1.19.4-common-api:13.1.0.19")
+    compileOnly fg.deobf("mezz.jei:jei-1.19.4-forge-api:13.1.0.19")
+    compileOnly fg.deobf("mezz.jei:jei-1.19.4-gui:13.1.0.19")
 
-    runtimeOnly fg.deobf("mezz.jei:jei-1.19.2-forge:11.8.1.1034")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.19.4-forge:13.1.0.19")
 }
 
 tasks.register('sourcesJar', Jar) {

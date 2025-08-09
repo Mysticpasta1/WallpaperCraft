@@ -9,8 +9,7 @@ public abstract class Press extends Item {
 
     public Press( String variant ) {
         super( new Item.Properties()
-             .stacksTo( 1 )
-             .tab( Wallpapercraft.TAB ) );
+             .stacksTo( 1 ));
 
         this.variant = variant;
     }

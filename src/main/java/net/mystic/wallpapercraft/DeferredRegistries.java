@@ -12,7 +12,7 @@ public class DeferredRegistries {
 
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create( ForgeRegistries.SOUND_EVENTS, Wallpapercraft.MODID );
 
-    public static final RegistryObject<SoundEvent> BLOCK_CHANGE_IN_WORLD = DeferredRegistries.SOUND_EVENTS.register( "block_change_in_world", () -> new SoundEvent( new ResourceLocation( Wallpapercraft.MODID, "block_change_in_world" ) ) );
+    public static final RegistryObject<SoundEvent> BLOCK_CHANGE_IN_WORLD = DeferredRegistries.SOUND_EVENTS.register( "block_change_in_world", () -> SoundEvent.createFixedRangeEvent(new ResourceLocation( Wallpapercraft.MODID, "block_change_in_world" ), 1f));
 
     public static void setup() {
 

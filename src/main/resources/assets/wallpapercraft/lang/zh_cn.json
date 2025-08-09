@@ -3,6 +3,8 @@
 
   "jei.wallpapercraft.solidgray-0.desc": "基础墙纸创造方块.\n\n组合一到三次可以改变他的外观.\n\n不仅仅是基础方块，任何墙纸方块都可以这样",
 
+  "wallpapercraft.subtitle.block_change_in_world": "改變世界的區塊",
+
   "item.wallpapercraft.paintbrush": "画笔",
   "jei.wallpapercraft.paintbrush.desc": "左键单击显示非透明方块的颜色",
 

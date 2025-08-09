@@ -2,12 +2,14 @@ package net.mystic.wallpapercraft.recipes;
 
 import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -43,6 +45,11 @@ public class PressCraftingRecipe implements CraftingRecipe {
     public RecipeType<?> getType() { return RecipeType.CRAFTING; }
 
     @Override
+    public CraftingBookCategory category() {
+        return CraftingBookCategory.BUILDING;
+    }
+
+    @Override
     public boolean matches(@Nonnull final CraftingContainer inv, @Nonnull final Level level) {
         int patternPressCount = 0, colourPressCount = 0, variantPressCount = 0, decorativeCount = 0;
 
@@ -70,8 +77,7 @@ public class PressCraftingRecipe implements CraftingRecipe {
     }
 
     @Override
-    @Nonnull
-    public ItemStack assemble(@Nonnull final CraftingContainer inv) {
+    public ItemStack assemble(CraftingContainer inv, RegistryAccess p_267165_) {
         String pattern = "", colour = "", suffix = "", postfix = "";
         String sourceNamespace = "";
         boolean hasChanged = false;
@@ -125,9 +131,10 @@ public class PressCraftingRecipe implements CraftingRecipe {
     @Override
     public boolean canCraftInDimensions(final int w, final int h) { return true; }
 
-    @Nonnull
     @Override
-    public ItemStack getResultItem() { return ItemStack.EMPTY; } // dynamic
+    public ItemStack getResultItem(RegistryAccess p_267052_) {
+         return ItemStack.EMPTY;
+    }
 
     @Nonnull
     @Override

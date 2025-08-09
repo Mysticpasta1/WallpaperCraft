@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[43,44)"  # Forge 43.x (MC 1.19.2)
+loaderVersion = "[45,)"
 issueTrackerURL = "https://github.com/Mysticpasta1/Wallpapercraft/issues"
 license = "MIT"
 
@@ -16,21 +16,20 @@ Wallpapercraft - RePainted
 [[dependencies.wallpapercraft]]
 modId = "forge"
 mandatory = true
-versionRange = "[43,44)"   # keep in the 43.x family
+versionRange = "[45,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.wallpapercraft]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.19.2,1.19.3)"  # 1.19.2 only
+versionRange = "[1.19.4,1.20)"
 ordering = "NONE"
 side = "BOTH"
 
-# Optional JEI client dep (for your JEI 11.8.1.1034 plugin)
 [[dependencies.wallpapercraft]]
 modId = "jei"
 mandatory = false
-versionRange = "[11.8.1,)"
+versionRange = "[13.1.0,)"
 ordering = "AFTER"
 side = "CLIENT"

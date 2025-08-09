@@ -1,6 +1,8 @@
 {
   "itemGroup.wallpapercraft": "WallpaperCraft",
 
+  "wallpapercraft.subtitle.block_change_in_world": "Block Change In World",
+
   "jei.wallpapercraft.solidgray-0.desc": "The base WallpaperCraft crafting block.\n\nCombine with one to three Presses to change its look.\n\nAny WallpaperCraft block, not just the base block, can be altered this way.",
 
   "item.wallpapercraft.paintbrush": "Paintbrush",

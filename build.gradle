@@ -1,92 +1,55 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-    }
+plugins {
+    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'eclipse'
+    id 'maven-publish'
 }
-apply plugin: 'net.minecraftforge.gradle'
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
 
 version = project.mod_version
-group = 'net.ommina.wallpapercraft' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "${name}-${minecraft_version}"
+group = 'net.mystic.wallpapercraft'
+archivesBaseName = "${project.name}-${project.minecraft_version}"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
-
-//processResources {
-//    from(sourceSets.main.resources.srcDirs) {
-//        include 'META-INF/mods.toml'
-
-//        expand 'mod_version': mod_version, 'forge_version_min': forge_version_min, 'forge_version_max': forge_version_max, 'minecraft_version_min': minecraft_version_min, 'minecraft_version_max': minecraft_version_max
-//    }
-
-//from(sourceSets.main.resources.srcDirs) {
-//    exclude 'META-INF/mods.toml'
-//}
-//}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 minecraft {
-
-    mappings channel: "${project.mcp_channel}", version: "${project.mcp_mappings}"
+    // Use official mappings to keep this simple
+    mappings channel: 'official', version: project.minecraft_version
 
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
-    // Default run configurations.
-    // These can be tweaked, removed, or duplicated as needed.
     runs {
         client {
             workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                wallpapercraft {
-                    source sourceSets.main
-                }
+                wallpapercraft { source sourceSets.main }
             }
         }
 
         server {
             workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                wallpapercraft {
-                    source sourceSets.main
-                }
+                wallpapercraft { source sourceSets.main }
             }
         }
 
         data {
             workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
             args '--mod', 'wallpapercraft', '--all', '--output', file('src/generated/resources/')
 
             mods {
-                wallpapercraft {
-                    source sourceSets.main
-                }
+                wallpapercraft { source sourceSets.main }
             }
         }
     }
@@ -94,79 +57,64 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-task sourcesJar(type: Jar) {
-    classifier = "sources"
-    from sourceSets.main.allJava
+repositories {
+    maven { name = "Progwml6";  url = "https://dvs1.progwml6.com/files/maven/" }
+    maven { name = "BlameJared"; url = "https://maven.blamejared.com/" }
+    maven { name = "ModMaven";   url = "https://modmaven.dev" }
+    maven { url = 'https://maven.minecraftforge.net' }
+    mavenCentral()
+}
+
+dependencies {
+    // Forge
+    minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
+
+    // JEI API (compileOnly) + full mod at runtime
+    compileOnly fg.deobf("mezz.jei:jei-1.19.2-common-api:11.8.1.1034")
+    compileOnly fg.deobf("mezz.jei:jei-1.19.2-forge-api:11.8.1.1034")
+    compileOnly fg.deobf("mezz.jei:jei-1.19.2-gui:11.8.1.1034")
+
+    runtimeOnly fg.deobf("mezz.jei:jei-1.19.2-forge:11.8.1.1034")
+}
+
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
 }
 
 artifacts {
-    archives sourcesJar
+    archives tasks.named('sourcesJar')
 }
 
-repositories {
-    maven {
-        // location of the maven that hosts JEI files
-        name = "Progwml6 maven"
-        url = "https://dvs1.progwml6.com/files/maven/"
-    }
-    maven {
-        // location of a maven mirror for JEI files, as a fallback
-        name = "ModMaven"
-        url = "https://modmaven.k-4u.nl"
-    }
-}
-
-
-dependencies {
-
-    minecraft([
-            group  : "${project.forge_group}",
-            name   : "forge",
-            version: "${project.minecraft_version}-${project.forge_version}"
-    ])
-
-    // compile against the JEI API but do not include it at runtime
-    // deobfProvided "mezz.jei:jei_${mc_version}:${jei_version}:api"
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
-    // at runtime, use the full JEI jar
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
-
-}
-
-// Example for how to get properties into the manifest for reading by the runtime..
 jar {
     manifest {
         attributes([
                 "Specification-Title"     : "wallpapercraft",
-                "Specification-Vendor"    : "Ommina",
-                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Specification-Vendor"    : "Mysticpasta1",
+                "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : "${version}",
-                "Implementation-Vendor"   : "Ommina",
+                "Implementation-Vendor"   : "Mysticpasta1",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
 
+// Reobfuscate the main jar
 jar.finalizedBy('reobfJar')
 
-// Example configuration to allow publishing using the maven-publish task
-// we define a custom artifact that is sourced from the reobfJar output task
-// and then declare that to be published
-// Note you'll need to add a repository here
-
+// Publish reobf'd jar + sources
 def reobfFile = file("$buildDir/reobfJar/output.jar")
 def reobfArtifact = artifacts.add('default', reobfFile) {
     type 'jar'
     builtBy 'reobfJar'
 }
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             artifact reobfArtifact
-        }
-        mavenJava(MavenPublication) {
-            artifact sourcesJar
+            artifact tasks.named('sourcesJar')
         }
     }
     repositories {

@@ -50,8 +50,7 @@ public class VariantScrollRequest {
             if (itemKey == null) return;
 
             final String path = itemKey.getPath();
-            final IDecorativeBlock block = ModBlocks.BLOCKS.get(path);
-            if (block == null) return;
+            final IDecorativeBlock block = (IDecorativeBlock) ModBlocks.BLOCKS.get(path).get();
 
             final int limit = block.getColour().contains("cyan") ? 9 : 14;
             final int current = Math.abs(Integer.parseInt(block.getSuffix()));

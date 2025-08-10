@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -27,8 +28,6 @@ public class MouseScrollHandler {
 
         final ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
         if (held.isEmpty() || !(held.getItem() instanceof DecorativeItem) || !player.isCrouching()) return;
-
-        // Ensure the item is ours (namespace == wallpapercraft)
         var key = ForgeRegistries.ITEMS.getKey(held.getItem());
         if (key == null || !Wallpapercraft.MODID.equals(key.getNamespace())) return;
 
@@ -43,9 +42,6 @@ public class MouseScrollHandler {
         var itemKey = ForgeRegistries.ITEMS.getKey(stack.getItem());
         if (itemKey == null) return;
 
-        IDecorativeBlock block = ModBlocks.BLOCKS.get(itemKey.getPath());
-        if (block != null) {
-            Network.channel.sendToServer(new VariantScrollRequest(delta));
-        }
+        Network.channel.sendToServer(new VariantScrollRequest(delta));
     }
 }

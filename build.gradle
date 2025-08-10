@@ -1,5 +1,5 @@
 plugins {
-    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'net.minecraftforge.gradle' version '6.+'   // ForgeGradle for 1.20.x
     id 'eclipse'
     id 'maven-publish'
 }
@@ -9,15 +9,12 @@ group = 'net.mystic.wallpapercraft'
 archivesBaseName = "${project.name}-${project.minecraft_version}"
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
 }
 
 minecraft {
-    // Use official mappings to keep this simple
+    // 1.20.1 official mappings
     mappings channel: 'official', version: project.minecraft_version
-
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
@@ -25,32 +22,20 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
-
-            mods {
-                wallpapercraft { source sourceSets.main }
-            }
+            mods { wallpapercraft { source sourceSets.main } }
         }
-
         server {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
-
-            mods {
-                wallpapercraft { source sourceSets.main }
-            }
+            mods { wallpapercraft { source sourceSets.main } }
         }
-
         data {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
-
             args '--mod', 'wallpapercraft', '--all', '--output', file('src/generated/resources/')
-
-            mods {
-                wallpapercraft { source sourceSets.main }
-            }
+            mods { wallpapercraft { source sourceSets.main } }
         }
     }
 }
@@ -59,22 +44,21 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     maven { name = "Progwml6";  url = "https://dvs1.progwml6.com/files/maven/" }
-    maven { name = "BlameJared"; url = "https://maven.blamejared.com/" }
+    maven { name = "BlameJared"; url = "https://maven.blamejared.com/" } // JEI
     maven { name = "ModMaven";   url = "https://modmaven.dev" }
-    maven { url = 'https://maven.minecraftforge.net' }
+    maven { url = "https://maven.minecraftforge.net" }
     mavenCentral()
 }
 
 dependencies {
-    // Forge
+    // Forge (1.20.1 = 47.x line)
     minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
 
-    // JEI API (compileOnly) + full mod at runtime
-    compileOnly fg.deobf("mezz.jei:jei-1.19.4-common-api:13.1.0.19")
-    compileOnly fg.deobf("mezz.jei:jei-1.19.4-forge-api:13.1.0.19")
-    compileOnly fg.deobf("mezz.jei:jei-1.19.4-gui:13.1.0.19")
-
-    runtimeOnly fg.deobf("mezz.jei:jei-1.19.4-forge:13.1.0.19")
+    // JEI for 1.20.1 — use API at compile time, full mod at runtime
+    compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:${project.jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge-api:${project.jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-1.20.1-gui:${project.jei_version}")
+    runtimeOnly  fg.deobf("mezz.jei:jei-1.20.1-forge:${project.jei_version}")
 }
 
 tasks.register('sourcesJar', Jar) {
@@ -118,8 +102,6 @@ publishing {
         }
     }
     repositories {
-        maven {
-            url 'file:../mcmodsrepo'
-        }
+        maven { url 'file:../mcmodsrepo' }
     }
 }

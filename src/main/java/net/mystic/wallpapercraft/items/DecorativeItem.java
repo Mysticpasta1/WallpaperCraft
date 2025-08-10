@@ -6,8 +6,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item.Properties;
 
 public class DecorativeItem extends BlockItem {
-    public DecorativeItem( final Block blockIn, final Properties builder ) {
-        super( blockIn, builder );
+    public DecorativeItem(final Block blockIn, final Properties builder) {
+        super(blockIn, builder);
     }
 
 }

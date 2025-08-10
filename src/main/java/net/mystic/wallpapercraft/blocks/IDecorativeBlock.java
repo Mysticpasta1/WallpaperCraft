@@ -1,11 +1,11 @@
 package net.mystic.wallpapercraft.blocks;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.mystic.wallpapercraft.Wallpapercraft;
 import net.mystic.wallpapercraft.items.PressColour;
 import net.mystic.wallpapercraft.items.PressVariant;
@@ -20,15 +20,11 @@ public interface IDecorativeBlock {
 
     default void onBlockClicked(final BlockState state, final Level level, final BlockPos pos, final Player player) {
         if (level.isClientSide) return;
-
         var held = player.getMainHandItem();
         if (held.isEmpty()) return;
-
         var heldItem = held.getItem();
         Block target = null;
-
-        // paintbrush check via registry key (no ModItems field)
-        var paintbrush = ForgeRegistries.ITEMS.getValue(Wallpapercraft.getId("paintbrush"));
+        var paintbrush = BuiltInRegistries.ITEM.get(Wallpapercraft.getId("paintbrush"));
         if (heldItem == paintbrush) {
             target = InWorldHelper.getIncrementedBlockColour(this);
         } else if (heldItem instanceof PressColour colour) {
@@ -38,7 +34,6 @@ public interface IDecorativeBlock {
         }
 
         if (target == null) return;
-
-        level.setBlock(pos, target.defaultBlockState(), 3);
+        level.setBlockAndUpdate(pos, target.defaultBlockState());
     }
 }

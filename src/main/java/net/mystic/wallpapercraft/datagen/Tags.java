@@ -1,48 +1,40 @@
 package net.mystic.wallpapercraft.datagen;
 
 import net.minecraft.core.HolderLookup;
-import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import net.mystic.wallpapercraft.Wallpapercraft;
-import net.mystic.wallpapercraft.blocks.IDecorativeBlock;
 import net.mystic.wallpapercraft.blocks.ModBlocks;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
 public class Tags extends BlockTagsProvider {
-    public Tags(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, String modId, @Nullable ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, modId, existingFileHelper);
+    public Tags(PackOutput output,
+                CompletableFuture<HolderLookup.Provider> lookup,
+                @Nullable ExistingFileHelper efh) {
+        super(output, lookup, Wallpapercraft.MODID, efh);
     }
 
     @Override
-    protected void addTags(HolderLookup.Provider p_256380_) {
-        for ( final IDecorativeBlock b : ModBlocks.BLOCKS.values() ) {
+    protected void addTags(HolderLookup.@NotNull Provider provider) {
+        for (RegistryObject<Block> def : ModBlocks.BLOCKS.values()) {
+            Block block = def.get();
+            SoundType s = block.defaultBlockState().getSoundType();
 
-            final Block block = ForgeRegistries.BLOCKS.getValue( Wallpapercraft.getId( b.getNameForRegistry() ) );
-
-            assert block != null;
-            final Material m = block.defaultBlockState().getMaterial();
-
-            if ( m == Material.STONE || m == Material.GLASS || m == Material.CLAY )
-                tag( BlockTags.MINEABLE_WITH_PICKAXE ).add( block );
-            else if ( m == Material.WOOD || m == Material.WOOL )
-                tag( BlockTags.MINEABLE_WITH_AXE ).add( block );
-
+            if (s == SoundType.WOOD || s == SoundType.WOOL || s == SoundType.BAMBOO || s == SoundType.BAMBOO_WOOD) {
+                tag(BlockTags.MINEABLE_WITH_AXE).add(block);
+            } else {
+                tag(BlockTags.MINEABLE_WITH_PICKAXE).add(block);
+            }
         }
-
     }
 
-    @Override
-    public String getName() {
-        return "Wallpapercraft Tags";
-    }
-//endregion Overrides
-
+    @Override public @NotNull String getName() { return "Wallpapercraft Block Tags"; }
 }

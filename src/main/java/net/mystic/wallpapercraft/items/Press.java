@@ -5,11 +5,11 @@ import net.mystic.wallpapercraft.Wallpapercraft;
 
 public abstract class Press extends Item {
 
-    private String variant;
+    private final String variant;
 
-    public Press( String variant ) {
-        super( new Item.Properties()
-             .stacksTo( 1 ));
+    public Press(String variant) {
+        super(new Item.Properties()
+                .stacksTo(1));
 
         this.variant = variant;
     }

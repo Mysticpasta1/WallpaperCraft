@@ -2,37 +2,31 @@ package net.mystic.wallpapercraft;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegisterEvent;
+import net.mystic.wallpapercraft.blocks.ModBlocks;
+import net.mystic.wallpapercraft.items.ModItems;
 import net.mystic.wallpapercraft.network.Network;
-import net.mystic.wallpapercraft.util.ModRecipeSerializers;
+import net.mystic.wallpapercraft.sounds.SoundInit;
+import net.mystic.wallpapercraft.recipes.ModRecipeSerializers;
 
 @Mod(Wallpapercraft.MODID)
 public class Wallpapercraft {
-
     public static final String MODID = "wallpapercraft";
 
     public Wallpapercraft() {
+        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         MinecraftForge.EVENT_BUS.register(this);
-        DeferredRegistries.setup();
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-    }
-
-    @Mod.EventBusSubscriber(modid = Wallpapercraft.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static class ModBusHandlers {
-        @SubscribeEvent
-        public static void onRegister(RegisterEvent event) {
-            if (event.getRegistryKey().equals(ForgeRegistries.Keys.RECIPE_SERIALIZERS)) {
-                event.register(ForgeRegistries.Keys.RECIPE_SERIALIZERS, helper -> {
-                    helper.register(Wallpapercraft.getId("presscrafting"),
-                            ModRecipeSerializers.PRESSCRAFTING);
-                });
-            }
-        }
+        SoundInit.setup();
+        bus.addListener(this::setup);
+        ModBlocks.register(bus);
+        ModItems.register(bus);
+        ModBlocks.bootstrap();
+        ModItems.bootstrap();
+        ModTabs.register(bus);
+        ModRecipeSerializers.register(bus);
     }
 
     public static ResourceLocation getId(final String path) {
@@ -45,6 +39,6 @@ public class Wallpapercraft {
     }
 
     private void setup(final FMLCommonSetupEvent event) {
-        Network.init();
+        event.enqueueWork(Network::init);
     }
 }

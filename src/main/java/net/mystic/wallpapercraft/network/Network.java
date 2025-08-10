@@ -7,30 +7,31 @@ import net.mystic.wallpapercraft.Wallpapercraft;
 
 public class Network {
 
-    private static final ResourceLocation NAME = Wallpapercraft.getId( "network" );
+    private static final ResourceLocation NAME = Wallpapercraft.getId("network");
     private static final String PROTOCOL_VERSION = "1";
     public static SimpleChannel channel;
     private static int channelId = 0;
 
     static {
-
         channel = NetworkRegistry.newSimpleChannel(
-             NAME,
-             () -> PROTOCOL_VERSION,
-             PROTOCOL_VERSION::equals,
-             PROTOCOL_VERSION::equals
+                NAME,
+                () -> PROTOCOL_VERSION,
+                PROTOCOL_VERSION::equals,
+                PROTOCOL_VERSION::equals
         );
 
         channel.registerMessage(
-             channelId++,
-             VariantScrollRequest.class,
-             VariantScrollRequest::toBytes,
-             VariantScrollRequest::fromBytes,
-             VariantScrollRequest::handle
+                channelId++,
+                VariantScrollRequest.class,
+                VariantScrollRequest::toBytes,
+                VariantScrollRequest::fromBytes,
+                VariantScrollRequest::handle
         );
     }
 
-    private Network() {}
+    private Network() {
+    }
 
-    public static void init() {}
+    public static void init() {
+    }
 }

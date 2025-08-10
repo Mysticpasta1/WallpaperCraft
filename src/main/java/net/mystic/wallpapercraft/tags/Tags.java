@@ -9,13 +9,13 @@ import net.mystic.wallpapercraft.Wallpapercraft;
 public final class Tags {
 
     public static final TagKey<Item> PRESS_PATTERN = tag("press_pattern");
-    public static final TagKey<Item> PRESS_COLOUR  = tag("press_colour");
+    public static final TagKey<Item> PRESS_COLOUR = tag("press_colour");
     public static final TagKey<Item> PRESS_VARIANT = tag("press_variant");
-    // public static final TagKey<Item> DECORATIVE_ITEM = tag("decorative_item");
 
-    private Tags() {}
+    private Tags() {
+    }
 
     private static TagKey<Item> tag(String path) {
-        return ItemTags.create(Wallpapercraft.getId(path)); // RL = wallpapercraft:path
+        return ItemTags.create(Wallpapercraft.getId(path));
     }
 }

@@ -4,87 +4,102 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegisterEvent;
-
+import net.minecraftforge.registries.RegistryObject;
 import net.mystic.wallpapercraft.ModTabs;
 import net.mystic.wallpapercraft.Wallpapercraft;
+import net.mystic.wallpapercraft.blocks.IDecorativeBlock;
 import net.mystic.wallpapercraft.blocks.ModBlocks;
 
-@Mod.EventBusSubscriber(modid = Wallpapercraft.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class ModItems {
+import java.util.HashMap;
+import java.util.Map;
 
-    @SubscribeEvent
-    public static void onRegisterItems(RegisterEvent event) {
-        if (!event.getRegistryKey().equals(ForgeRegistries.Keys.ITEMS)) return;
+public final class ModItems {
 
-        event.register(ForgeRegistries.Keys.ITEMS, helper -> {
-            // Decorative BlockItems (likely extend BlockItem) -> show in MAIN_BLOCKS
-            ModBlocks.BLOCKS.keySet().stream().sorted().forEachOrdered(name -> {
-                ResourceLocation id = Wallpapercraft.getId(name);
-                Block block = ForgeRegistries.BLOCKS.getValue(id);
-                if (block != null) {
-                    helper.register(id, new DecorativeItem(block, new Item.Properties()));
-                    ModTabs.MAIN_BLOCKS.add(() -> ForgeRegistries.ITEMS.getValue(id));
-                }
-            });
+    private ModItems() {}
 
-            // Press: patterns
-            for (String s : ModBlocks.PATTERNS) {
-                ResourceLocation id = Wallpapercraft.getId("press" + s.toLowerCase());
-                helper.register(id, new PressPattern(s));
-                ModTabs.MAIN_ITEMS.add(() -> ForgeRegistries.ITEMS.getValue(id));
-            }
+    public static final DeferredRegister<Item> ITEMS =
+            DeferredRegister.create(ForgeRegistries.ITEMS, Wallpapercraft.MODID);
 
-            // Press: colours
-            for (String s : ModBlocks.COLOURS) {
-                ResourceLocation id = Wallpapercraft.getId("press" + s.toLowerCase());
-                helper.register(id, new PressColour(s));
-                ModTabs.MAIN_ITEMS.add(() -> ForgeRegistries.ITEMS.getValue(id));
-            }
+    public static final Map<String, RegistryObject<Item>> ITEM_ROS = new HashMap<>();
 
-            // Press: numeric variants
-            for (int i = 0; i <= 14; i++) {
-                ResourceLocation id = Wallpapercraft.getId("pressvariant" + i);
-                helper.register(id, new PressVariant(Integer.toString(i)));
-                ModTabs.MAIN_ITEMS.add(() -> ForgeRegistries.ITEMS.getValue(id));
-            }
-
-            // Simple items
-            registerSimpleItem(helper, "pressblank", 64);
-            registerSimpleItem(helper, "paintbrush", 1);
-
-            // BlockItems for specific blocks (show as blocks)
-            registerBlockItem(helper, "compressed");
-            registerBlockItem(helper, "hardened");
-        });
+    public static void register(IEventBus modBus) {
+        ITEMS.register(modBus);
+    }
+    public static void bootstrap() {
+        registerAllBlockItems();
+        registerPressPatterns();
+        registerPressColours();
+        registerPressVariants();
+        registerSimple("pressblank", new Item.Properties().stacksTo(64));
+        registerSimple("paintbrush", new Item.Properties().stacksTo(1));
     }
 
-    private static void registerSimpleItem(RegisterEvent.RegisterHelper<Item> helper, String name, int stack) {
-        ResourceLocation id = Wallpapercraft.getId(name);
-        helper.register(id, new Item(new Item.Properties().stacksTo(stack)));
-        ModTabs.MAIN_ITEMS.add(() -> ForgeRegistries.ITEMS.getValue(id));
-    }
+    private static void registerAllBlockItems() {
+        for (var e : ModBlocks.BLOCKS.entrySet()) {
+            String name = e.getKey();
+            RegistryObject<Block> blockRO = e.getValue();
+            RegistryObject<Item> itemRO = ITEMS.register(name,
+                    () -> new DecorativeItem(blockRO.get(), new Item.Properties()));
 
-    private static void registerBlockItem(RegisterEvent.RegisterHelper<Item> helper, String name) {
-        ResourceLocation id = Wallpapercraft.getId(name);
-        Block block = ForgeRegistries.BLOCKS.getValue(id);
-        if (block != null) {
-            helper.register(id, new BlockItem(block, new Item.Properties().stacksTo(64)));
-            ModTabs.MAIN_BLOCKS.add(() -> ForgeRegistries.ITEMS.getValue(id));
+            ITEM_ROS.put(name, itemRO);
+            ModTabs.addToMainTab(itemRO);
         }
     }
 
-    // (unchanged helpers)
+
+    private static void registerPressPatterns() {
+        for (String p : ModBlocks.PATTERNS) {
+            String name = "press" + p.toLowerCase();
+            RegistryObject<Item> ro = ITEMS.register(name, () -> new PressPattern(p));
+            ITEM_ROS.put(name, ro);
+            ModTabs.addToMainTabItems(ro);
+        }
+    }
+
+    private static void registerPressColours() {
+        for (String c : ModBlocks.COLOURS) {
+            String name = "press" + c.toLowerCase();
+            RegistryObject<Item> ro = ITEMS.register(name, () -> new PressColour(c));
+            ITEM_ROS.put(name, ro);
+            ModTabs.addToMainTabItems(ro);
+        }
+    }
+
+    private static void registerPressVariants() {
+        for (int i = 0; i <= 14; i++) {
+            String name = "pressvariant" + i;
+            int finalI = i;
+            RegistryObject<Item> ro = ITEMS.register(name, () -> new PressVariant(Integer.toString(finalI)));
+            ITEM_ROS.put(name, ro);
+            ModTabs.addToMainTabItems(ro);
+        }
+    }
+
+    private static void registerSimple(String name, Item.Properties props) {
+        RegistryObject<Item> ro = ITEMS.register(name, () -> new Item(props));
+        ITEM_ROS.put(name, ro);
+        ModTabs.addToMainTabItems(ro);
+    }
+
+    @SuppressWarnings("unused")
+    private static void registerBlockItem(String blockName) {
+        Block block = ModBlocks.BLOCKS.get(blockName).get();
+        RegistryObject<Item> ro = ITEMS.register(blockName, () -> new BlockItem(block, new Item.Properties().stacksTo(64)));
+        ITEM_ROS.put(blockName, ro);
+        ModTabs.addToMainTab(ro);
+    }
+
     public static DecorativeItem get(final String pattern, final String colour, final int suffix, final String postfix) {
-        return (DecorativeItem) ForgeRegistries.ITEMS.getValue(
-                Wallpapercraft.getId(pattern + colour + "-" + suffix + postfix)
-        );
+        ResourceLocation id = Wallpapercraft.getId(pattern + colour + "-" + suffix + postfix);
+        Item item = ForgeRegistries.ITEMS.getValue(id);
+        return item instanceof DecorativeItem di ? di : null;
     }
 
     public static DecorativeItem get(final ResourceLocation location) {
-        return (DecorativeItem) ForgeRegistries.ITEMS.getValue(location);
+        Item item = ForgeRegistries.ITEMS.getValue(location);
+        return item instanceof DecorativeItem di ? di : null;
     }
 }

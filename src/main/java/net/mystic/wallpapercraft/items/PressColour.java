@@ -2,10 +2,10 @@ package net.mystic.wallpapercraft.items;
 
 public class PressColour extends Press {
 
-    private String colour;
+    private final String colour;
 
-    public PressColour( final String colour ) {
-        super( colour );
+    public PressColour(final String colour) {
+        super(colour);
 
         this.colour = colour;
     }

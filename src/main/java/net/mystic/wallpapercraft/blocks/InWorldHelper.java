@@ -10,13 +10,10 @@ import net.mystic.wallpapercraft.items.PressVariant;
 import javax.annotation.Nullable;
 
 public class InWorldHelper {
-
     @Nullable
     public static Block getIncrementedBlockColour(final IDecorativeBlock blockIn) {
         String ns = namespaceOf((Block) blockIn);
         if (ns == null) return null;
-
-        // try +1, then +2
         Block b = ForgeRegistries.BLOCKS.getValue(
                 reg(ns, blockIn.getPattern(), ModBlocks.getNextColour(blockIn.getColour(), 1), blockIn.getSuffix(), blockIn)
         );
@@ -25,14 +22,13 @@ public class InWorldHelper {
                     reg(ns, blockIn.getPattern(), ModBlocks.getNextColour(blockIn.getColour(), 2), blockIn.getSuffix(), blockIn)
             );
         }
-        return b; // may be null if not found
+        return b;
     }
 
     @Nullable
     public static Block getBlockFromColourPress(final IDecorativeBlock blockIn, final PressColour pressColour) {
         String ns = namespaceOf((Block) blockIn);
         if (ns == null) return null;
-
         return ForgeRegistries.BLOCKS.getValue(
                 reg(ns, blockIn.getPattern(), pressColour.getColour(), blockIn.getSuffix(), blockIn)
         );

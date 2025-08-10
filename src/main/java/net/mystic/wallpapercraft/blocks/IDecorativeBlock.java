@@ -5,7 +5,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.mystic.wallpapercraft.Wallpapercraft;
 import net.mystic.wallpapercraft.items.PressColour;
 import net.mystic.wallpapercraft.items.PressVariant;
@@ -13,12 +12,12 @@ import net.mystic.wallpapercraft.items.PressVariant;
 public interface IDecorativeBlock {
 
     String getPostfix();
-    String getNameForRegistry();
+
     String getPattern();
     String getColour();
     String getSuffix();
 
-    default void onBlockClicked(final BlockState state, final Level level, final BlockPos pos, final Player player) {
+    default void onBlockClicked(final Level level, final BlockPos pos, final Player player) {
         if (level.isClientSide) return;
         var held = player.getMainHandItem();
         if (held.isEmpty()) return;

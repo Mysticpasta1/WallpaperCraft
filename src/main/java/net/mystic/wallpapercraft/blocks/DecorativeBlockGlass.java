@@ -6,19 +6,18 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.AbstractGlassBlock;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.HalfTransparentBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.mystic.wallpapercraft.Wallpapercraft;
 import net.mystic.wallpapercraft.items.PressColour;
 import net.mystic.wallpapercraft.items.PressVariant;
-import net.mystic.wallpapercraft.sounds.ModSoundType;
+import net.mystic.wallpapercraft.sounds.ModSoundTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DecorativeBlockGlass extends AbstractGlassBlock implements IDecorativeBlock {
+public class DecorativeBlockGlass extends HalfTransparentBlock implements IDecorativeBlock {
 
     private static final String POSTFIX = "";
 
@@ -31,47 +30,28 @@ public class DecorativeBlockGlass extends AbstractGlassBlock implements IDecorat
                                 final int suffix,
                                 final BlockBehaviour.Properties props,
                                 final int light) {
-        super(props.lightLevel(s -> light));
+        super(props.noOcclusion().lightLevel(s -> light));
         this.pattern = pattern;
         this.colour = colour;
-        this.suffix = "-" + suffix;
+        this.suffix  = "-" + suffix;
+    }
+
+    // ─── IDecorativeBlock meta ────────────────────────────────────────────────
+    @Override public String getPostfix() { return POSTFIX; }
+    @Override public String getPattern() { return this.pattern; }
+    @Override public String getColour()  { return this.colour; }
+    @Override public String getSuffix()  { return this.suffix; }
+
+    @Override
+    public void attack(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player) {
+        IDecorativeBlock.super.onBlockClicked(level, pos, player);
     }
 
     @Override
-    public void attack(final @NotNull BlockState state, final @NotNull Level level, final @NotNull BlockPos pos, final @NotNull Player player) {
-        IDecorativeBlock.super.onBlockClicked(state, level, pos, player);
-    }
-
-    @Override
-    public String getPostfix() {
-        return POSTFIX;
-    }
-
-    @Override
-    public String getNameForRegistry() {
-        return pattern + colour + suffix + POSTFIX;
-    }
-
-    @Override
-    public String getPattern() {
-        return pattern;
-    }
-
-    @Override
-    public String getColour() {
-        return colour;
-    }
-
-    @Override
-    public String getSuffix() {
-        return suffix;
-    }
-
-    @Override
-    public SoundType getSoundType(final BlockState state,
-                                  final LevelReader world,
-                                  final BlockPos pos,
-                                  @Nullable final Entity entity) {
+    public @NotNull SoundType getSoundType(final @NotNull BlockState state,
+                                           final @NotNull LevelReader world,
+                                           final @NotNull BlockPos pos,
+                                           @Nullable final Entity entity) {
         if (!(entity instanceof Player player)) return SoundType.GLASS;
 
         var held = player.getMainHandItem();
@@ -79,9 +59,9 @@ public class DecorativeBlockGlass extends AbstractGlassBlock implements IDecorat
 
         var paintbrush = BuiltInRegistries.ITEM.get(Wallpapercraft.getId("paintbrush"));
         if (held.getItem() == paintbrush || held.getItem() instanceof PressColour || held.getItem() instanceof PressVariant) {
-            return ModSoundType.BLOCK_CHANGE;
+            return ModSoundTypes.BLOCK_CHANGE;
         }
-
+        // your original fallback was STONE when not interacting with tools
         return SoundType.STONE;
     }
 }

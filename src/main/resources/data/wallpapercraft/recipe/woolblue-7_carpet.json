@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "wallpapercraft",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "wallpapercraft:woolblue-7"
+    }
+  },
+  "result": {
+    "count": 3,
+    "id": "wallpapercraft:woolblue-7_carpet"
+  }
+}

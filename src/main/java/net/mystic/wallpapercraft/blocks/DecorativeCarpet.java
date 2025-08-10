@@ -2,32 +2,29 @@ package net.mystic.wallpapercraft.blocks;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.mystic.wallpapercraft.Wallpapercraft;
 import net.mystic.wallpapercraft.items.PressColour;
 import net.mystic.wallpapercraft.items.PressVariant;
-import net.mystic.wallpapercraft.sounds.ModSoundType;
+import net.mystic.wallpapercraft.sounds.ModSoundTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DecorativeCarpet extends DecorativeBlockPatterned implements IDecorativeBlock {
 
-    protected static final VoxelShape SHAPE =
-            Block.box(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
-
+    protected static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
     private static final String POSTFIX = "_carpet";
 
     public DecorativeCarpet(final String pattern,
@@ -37,31 +34,22 @@ public class DecorativeCarpet extends DecorativeBlockPatterned implements IDecor
         super(pattern, colour, suffix, props, 0);
     }
 
-    @Override
-    public String getPostfix() {
-        return POSTFIX;
-    }
+    @Override public String getPostfix() { return POSTFIX; }
 
     @Override
-    public String getNameForRegistry() {
-        return this.pattern + this.colour + this.suffix + POSTFIX;
-    }
-
-    @Override
-    public SoundType getSoundType(final BlockState state,
-                                  final LevelReader world,
-                                  final BlockPos pos,
-                                  @Nullable final Entity entity) {
+    public @NotNull SoundType getSoundType(final BlockState state,
+                                           final @NotNull LevelReader world,
+                                           final @NotNull BlockPos pos,
+                                           @Nullable final Entity entity) {
         if (!(entity instanceof Player player)) return SoundType.WOOL;
 
         var held = player.getMainHandItem();
         if (held.isEmpty()) return SoundType.WOOL;
 
-        var paintbrush = ForgeRegistries.ITEMS.getValue(Wallpapercraft.getId("paintbrush"));
+        var paintbrush = BuiltInRegistries.ITEM.get(Wallpapercraft.getId("paintbrush"));
         if (held.getItem() == paintbrush || held.getItem() instanceof PressColour || held.getItem() instanceof PressVariant) {
-            return ModSoundType.BLOCK_CHANGE;
+            return ModSoundTypes.BLOCK_CHANGE;
         }
-
         return SoundType.WOOL;
     }
 
@@ -83,10 +71,10 @@ public class DecorativeCarpet extends DecorativeBlockPatterned implements IDecor
     }
 
     @Override
-    public VoxelShape getShape(final @NotNull BlockState state,
-                               final @NotNull BlockGetter level,
-                               final @NotNull BlockPos pos,
-                               final @NotNull CollisionContext ctx) {
+    public @NotNull VoxelShape getShape(final @NotNull BlockState state,
+                                        final @NotNull BlockGetter level,
+                                        final @NotNull BlockPos pos,
+                                        final @NotNull CollisionContext ctx) {
         return SHAPE;
     }
 }

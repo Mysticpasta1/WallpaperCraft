@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "wallpapercraft",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "wallpapercraft:woolbrown-8"
+    }
+  },
+  "result": {
+    "count": 3,
+    "id": "wallpapercraft:woolbrown-8_carpet"
+  }
+}

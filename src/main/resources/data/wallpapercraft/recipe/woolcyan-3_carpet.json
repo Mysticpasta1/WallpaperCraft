@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "wallpapercraft",
+  "pattern": [
+    "##"
+  ],
+  "key": {
+    "#": {
+      "item": "wallpapercraft:woolcyan-3"
+    }
+  },
+  "result": {
+    "count": 3,
+    "id": "wallpapercraft:woolcyan-3_carpet"
+  }
+}

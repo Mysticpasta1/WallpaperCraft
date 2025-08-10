@@ -1,107 +1,128 @@
 plugins {
-    id 'net.minecraftforge.gradle' version '6.+'   // ForgeGradle for 1.20.x
-    id 'eclipse'
+    id 'java-library'
     id 'maven-publish'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.107'
 }
 
-version = project.mod_version
-group = 'net.mystic.wallpapercraft'
-archivesBaseName = "${project.name}-${project.minecraft_version}"
+version = mod_version
+group = mod_group
 
-java {
-    toolchain { languageVersion = JavaLanguageVersion.of(17) }
+base {
+    archivesName = mod_id
 }
 
-minecraft {
-    // 1.20.1 official mappings
-    mappings channel: 'official', version: project.minecraft_version
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
 
     runs {
         client {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            mods { wallpapercraft { source sourceSets.main } }
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
+
         server {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            mods { wallpapercraft { source sourceSets.main } }
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
+
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         data {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            args '--mod', 'wallpapercraft', '--all', '--output', file('src/generated/resources/')
-            mods { wallpapercraft { source sourceSets.main } }
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
         }
     }
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
 repositories {
-    maven { name = "Progwml6";  url = "https://dvs1.progwml6.com/files/maven/" }
-    maven { name = "BlameJared"; url = "https://maven.blamejared.com/" } // JEI
-    maven { name = "ModMaven";   url = "https://modmaven.dev" }
-    maven { url = "https://maven.minecraftforge.net" }
     mavenCentral()
+    maven {
+        name = "Jared's maven"
+        url = "https://maven.blamejared.com/"
+    }
+    maven {
+        name = "ModMaven"
+        url = "https://modmaven.dev"
+    }
 }
 
 dependencies {
-    // Forge (1.20.1 = 47.x line)
-    minecraft "net.minecraftforge:forge:${project.minecraft_version}-${project.forge_version}"
-
-    // JEI for 1.20.1 — use API at compile time, full mod at runtime
-    compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:${project.jei_version}")
-    compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge-api:${project.jei_version}")
-    compileOnly fg.deobf("mezz.jei:jei-1.20.1-gui:${project.jei_version}")
-    runtimeOnly  fg.deobf("mezz.jei:jei-1.20.1-forge:${project.jei_version}")
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 }
 
-tasks.register('sourcesJar', Jar) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [minecraft_version      : minecraft_version,
+                             minecraft_version_range: minecraft_version_range,
+                             neo_version            : neo_version,
+                             neo_version_range      : neo_version_range,
+                             loader_version_range   : loader_version_range,
+                             mod_id                 : mod_id,
+                             mod_name               : mod_name,
+                             mod_license            : mod_license,
+                             mod_version            : mod_version,
+                             mod_authors            : mod_authors,
+                             mod_description        : mod_description]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
 }
 
-artifacts {
-    archives tasks.named('sourcesJar')
-}
-
-jar {
-    manifest {
-        attributes([
-                "Specification-Title"     : "wallpapercraft",
-                "Specification-Vendor"    : "Mysticpasta1",
-                "Specification-Version"   : "1",
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : "${version}",
-                "Implementation-Vendor"   : "Mysticpasta1",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
-}
-
-// Reobfuscate the main jar
-jar.finalizedBy('reobfJar')
-
-// Publish reobf'd jar + sources
-def reobfFile = file("$buildDir/reobfJar/output.jar")
-def reobfArtifact = artifacts.add('default', reobfFile) {
-    type 'jar'
-    builtBy 'reobfJar'
-}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            artifact reobfArtifact
-            artifact tasks.named('sourcesJar')
+        register('mavenJava', MavenPublication) {
+            from components.java
         }
     }
     repositories {
-        maven { url 'file:../mcmodsrepo' }
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
     }
 }

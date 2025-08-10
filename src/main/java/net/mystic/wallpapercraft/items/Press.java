@@ -4,7 +4,6 @@ import net.minecraft.world.item.Item;
 import net.mystic.wallpapercraft.Wallpapercraft;
 
 public abstract class Press extends Item {
-
     private final String variant;
 
     public Press(String variant) {
@@ -17,5 +16,4 @@ public abstract class Press extends Item {
     public String getVariant() {
         return this.variant;
     }
-
 }

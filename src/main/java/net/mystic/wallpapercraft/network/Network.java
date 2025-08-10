@@ -1,37 +1,21 @@
 package net.mystic.wallpapercraft.network;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
-import net.mystic.wallpapercraft.Wallpapercraft;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-public class Network {
+@EventBusSubscriber
+public final class Network {
+    private Network() {}
 
-    private static final ResourceLocation NAME = Wallpapercraft.getId("network");
-    private static final String PROTOCOL_VERSION = "1";
-    public static SimpleChannel channel;
-    private static int channelId = 0;
-
-    static {
-        channel = NetworkRegistry.newSimpleChannel(
-                NAME,
-                () -> PROTOCOL_VERSION,
-                PROTOCOL_VERSION::equals,
-                PROTOCOL_VERSION::equals
+    @SubscribeEvent
+    public static void register(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar("1");
+        registrar.playToServer(
+                VariantScrollPayload.TYPE,
+                VariantScrollPayload.STREAM_CODEC,
+                VariantScrollHandler::handle
         );
-
-        channel.registerMessage(
-                channelId++,
-                VariantScrollRequest.class,
-                VariantScrollRequest::toBytes,
-                VariantScrollRequest::fromBytes,
-                VariantScrollRequest::handle
-        );
-    }
-
-    private Network() {
-    }
-
-    public static void init() {
     }
 }

@@ -2,46 +2,39 @@ package net.mystic.wallpapercraft.events;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.mystic.wallpapercraft.Wallpapercraft;
-import net.mystic.wallpapercraft.blocks.IDecorativeBlock;
-import net.mystic.wallpapercraft.blocks.ModBlocks;
 import net.mystic.wallpapercraft.items.DecorativeItem;
-import net.mystic.wallpapercraft.network.Network;
-import net.mystic.wallpapercraft.network.VariantScrollRequest;
+import net.mystic.wallpapercraft.network.VariantScrollPayload;
 import net.mystic.wallpapercraft.util.MathUtil;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Wallpapercraft.MODID, value = Dist.CLIENT)
 public class MouseScrollHandler {
 
     @SubscribeEvent
-    public static void onScroll(InputEvent.MouseScrollingEvent event) {
-        final LocalPlayer player = Minecraft.getInstance().player;
+    public static void onScroll(net.neoforged.neoforge.client.event.InputEvent.MouseScrollingEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
         if (player == null) return;
 
-        final ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
+        ItemStack held = player.getItemInHand(InteractionHand.MAIN_HAND);
         if (held.isEmpty() || !(held.getItem() instanceof DecorativeItem) || !player.isCrouching()) return;
-        var key = ForgeRegistries.ITEMS.getKey(held.getItem());
-        if (key == null || !Wallpapercraft.MODID.equals(key.getNamespace())) return;
 
-        final int delta = MathUtil.clamp((int) Math.round(event.getScrollDelta()), -1, 1);
+        var key = BuiltInRegistries.ITEM.getKey(held.getItem());
+        if (!Wallpapercraft.MODID.equals(key.getNamespace())) return;
+
+        int delta = MathUtil.clamp((int)Math.round(event.getScrollDeltaY()), -1, 1);
         if (delta == 0) return;
-
-        cycleVariant(held, delta);
-        event.setCanceled(true);
-    }
-
-    private static void cycleVariant(ItemStack stack, int delta) {
-        var itemKey = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        if (itemKey == null) return;
-
-        Network.channel.sendToServer(new VariantScrollRequest(delta));
+        var conn = mc.getConnection();
+        if (conn != null) {
+            conn.send(new VariantScrollPayload(delta));
+            event.setCanceled(true);
+        }
     }
 }
+

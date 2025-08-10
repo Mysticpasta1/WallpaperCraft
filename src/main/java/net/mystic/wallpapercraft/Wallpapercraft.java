@@ -1,44 +1,45 @@
 package net.mystic.wallpapercraft;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.mystic.wallpapercraft.blocks.ModBlocks;
 import net.mystic.wallpapercraft.items.ModItems;
-import net.mystic.wallpapercraft.network.Network;
-import net.mystic.wallpapercraft.sounds.SoundInit;
 import net.mystic.wallpapercraft.recipes.ModRecipeSerializers;
+import net.mystic.wallpapercraft.sounds.ModSoundTypes;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
 
 @Mod(Wallpapercraft.MODID)
 public class Wallpapercraft {
     public static final String MODID = "wallpapercraft";
 
-    public Wallpapercraft() {
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        MinecraftForge.EVENT_BUS.register(this);
-        SoundInit.setup();
-        bus.addListener(this::setup);
-        ModBlocks.register(bus);
-        ModItems.register(bus);
+    public Wallpapercraft(IEventBus modBus) {
+        ModTabs.register(modBus);
+        ModBlocks.register(modBus);
+        ModItems.register(modBus);
+        ModRecipeSerializers.register(modBus);
+        ModSoundTypes.register(modBus);
         ModBlocks.bootstrap();
         ModItems.bootstrap();
-        ModTabs.register(bus);
-        ModRecipeSerializers.register(bus);
+        ModTabs.bootstrap();
     }
 
+    @SubscribeEvent
+    public static void onServerAboutToStart(net.neoforged.neoforge.event.server.ServerAboutToStartEvent e) {
+        long count = e.getServer().getRecipeManager()
+                .getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING).stream()
+                .filter(h -> h.value() instanceof net.mystic.wallpapercraft.recipes.PressCraftingRecipe)
+                .count();
+        System.out.println("[Wallpapercraft] PressCrafting recipes loaded: " + count);
+    }
+
+
     public static ResourceLocation getId(final String path) {
-        return new ResourceLocation(MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 
     public static ResourceLocation getId(final String namespace, final String path) {
         if (namespace == null || namespace.isEmpty()) return getId(path);
-        return new ResourceLocation(namespace, path);
-    }
-
-    private void setup(final FMLCommonSetupEvent event) {
-        event.enqueueWork(Network::init);
+        return ResourceLocation.fromNamespaceAndPath(namespace, path);
     }
 }

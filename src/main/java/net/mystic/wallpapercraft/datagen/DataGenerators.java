@@ -1,17 +1,21 @@
 package net.mystic.wallpapercraft.datagen;
 
-import net.minecraft.data.DataGenerator;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.mystic.wallpapercraft.Wallpapercraft;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-public class DataGenerators {
+@EventBusSubscriber(modid = Wallpapercraft.MODID, value = Dist.CLIENT)
+public final class DataGenerators {
+
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
-        DataGenerator generator = event.getGenerator();
-        if (event.includeServer()) {
-            generator.addProvider(true, new Tags(generator.getPackOutput(), event.getLookupProvider(), event.getExistingFileHelper()));
-        }
+    public static void gatherData(GatherDataEvent e) {
+        var gen = e.getGenerator();
+        var efh = e.getExistingFileHelper();
+
+        gen.addProvider(e.includeServer(), new WPTags(gen.getPackOutput(), e.getLookupProvider(), efh));
+        gen.addProvider(e.includeClient(), new WPBlockStateProvider(gen.getPackOutput(), efh));
+        gen.addProvider(e.includeClient(), new WPItemModelProvider(gen.getPackOutput(), efh));
     }
 }

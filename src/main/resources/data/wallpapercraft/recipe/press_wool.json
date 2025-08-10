@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "wallpapercraft",
+  "pattern": [
+    "   ",
+    "wb ",
+    "   "
+  ],
+  "key": {
+    "b": {
+      "item": "wallpapercraft:pressblank"
+    },
+    "w": {
+      "tag": "minecraft:wool"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "wallpapercraft:presswool"
+  }
+}

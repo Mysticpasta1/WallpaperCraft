@@ -24,23 +24,27 @@ import net.mystic.wallpapercraft.items.PressVariant;
 import net.mystic.wallpapercraft.util.ModRecipeSerializers;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
+import java.util.Optional;
 
-public class PressCraftingRecipe implements CraftingRecipe {
+/**
+ * Press crafting: one DecorativeItem + exactly one Press (pattern OR colour OR variant) -> new DecorativeItem
+ */
+public record PressCraftingRecipe(ResourceLocation id) implements CraftingRecipe {
 
     public static final ResourceLocation NAME = Wallpapercraft.getId("presscrafting");
 
     public static final RecipeType<PressCraftingRecipe> RECIPE_TYPE = new RecipeType<>() {
-        @Override public String toString() { return NAME.toString(); }
+        @Override
+        public String toString() {
+            return NAME.toString();
+        }
     };
 
-    private final ResourceLocation id;
-
-    public PressCraftingRecipe(final ResourceLocation id) {
-        this.id = id;
-    }
-
     @Override
-    public RecipeType<?> getType() { return RecipeType.CRAFTING; }
+    public RecipeType<?> getType() {
+        return RecipeType.CRAFTING;
+    }
 
     @Override
     public boolean matches(@Nonnull final CraftingContainer inv, @Nonnull final Level level) {
@@ -70,8 +74,7 @@ public class PressCraftingRecipe implements CraftingRecipe {
     }
 
     @Override
-    @Nonnull
-    public ItemStack assemble(@Nonnull final CraftingContainer inv) {
+    public ItemStack assemble(CraftingContainer inv) {
         String pattern = "", colour = "", suffix = "", postfix = "";
         String sourceNamespace = "";
         boolean hasChanged = false;
@@ -89,9 +92,9 @@ public class PressCraftingRecipe implements CraftingRecipe {
             sourceNamespace = blkKey.getNamespace();
 
             pattern = decoBlock.getPattern();
-            colour  = decoBlock.getColour();
-            suffix  = decoBlock.getSuffix();
-            // normalize: store just the number (strip leading '-')
+            colour = decoBlock.getColour();
+            suffix = decoBlock.getSuffix();
+            // normalize base suffix: store just the number (strip leading '-')
             if (suffix.startsWith("-")) suffix = suffix.substring(1);
             postfix = decoBlock.getPostfix();
             break;
@@ -109,25 +112,34 @@ public class PressCraftingRecipe implements CraftingRecipe {
                 colour = press.getVariant();
                 hasChanged = true;
             } else if (press instanceof PressVariant) {
-                suffix = press.getVariant(); // number string
+                // normalize variant suffix exactly like the base (strip any leading '-')
+                String v = press.getVariant();
+                if (v.startsWith("-")) v = v.substring(1);
+                suffix = v;
                 hasChanged = true;
             }
         }
 
         if (!hasChanged) return ItemStack.EMPTY;
 
-        // always add the dash here
-        final String targetPath = pattern + colour + "-" + suffix + postfix;
+        // build path: add '-' only if suffix is non-empty to avoid double/stray dashes
+        final String sep = suffix.isEmpty() ? "" : "-";
+        final String targetPath = pattern + colour + sep + suffix + postfix;
+
+        // look up namespaced item (namespace from the decorative base block)
         final Item out = ForgeRegistries.ITEMS.getValue(Wallpapercraft.getId(sourceNamespace, targetPath));
         return out == null ? ItemStack.EMPTY : new ItemStack(out);
     }
 
     @Override
-    public boolean canCraftInDimensions(final int w, final int h) { return true; }
+    public boolean canCraftInDimensions(final int w, final int h) {
+        return true;
+    }
 
-    @Nonnull
     @Override
-    public ItemStack getResultItem() { return ItemStack.EMPTY; } // dynamic
+    public ItemStack getResultItem() {
+        return ItemStack.EMPTY;
+    }
 
     @Nonnull
     @Override
@@ -145,23 +157,34 @@ public class PressCraftingRecipe implements CraftingRecipe {
     }
 
     @Override
-    public boolean isSpecial() { return true; } // hide from recipe book
+    public boolean isSpecial() {
+        return true;
+    } // hide from recipe book
 
     @Nonnull
     @Override
-    public String getGroup() { return Wallpapercraft.MODID; }
+    public String getGroup() {
+        return Wallpapercraft.MODID;
+    }
 
     @Nonnull
     @Override
-    public ResourceLocation getId() { return this.id; }
+    public ResourceLocation getId() {
+        return this.id;
+    }
 
     @Nonnull
     @Override
-    public RecipeSerializer<?> getSerializer() { return ModRecipeSerializers.PRESSCRAFTING; }
+    public RecipeSerializer<?> getSerializer() {
+        return ModRecipeSerializers.PRESSCRAFTING;
+    }
 
-    /** No ForgeRegistryEntry, no setRegistryName — register in your RegisterEvent handler. */
+    /**
+     * No ForgeRegistryEntry, no setRegistryName — register in your RegisterEvent handler.
+     */
     public static final class Serializer implements RecipeSerializer<PressCraftingRecipe> {
-        public Serializer() {}
+        public Serializer() {
+        }
 
         @Nonnull
         @Override
@@ -178,6 +201,148 @@ public class PressCraftingRecipe implements CraftingRecipe {
         @Override
         public void toNetwork(@Nonnull final FriendlyByteBuf buf, @Nonnull final PressCraftingRecipe recipe) {
             // nothing to write; recipe is dynamic
+        }
+    }
+
+    /* ==============================
+       Helpers for JEI category view
+       ============================== */
+
+    /**
+     * Pick a base DecorativeItem for this output that differs by exactly one attribute.
+     */
+    public Optional<ItemStack> getBaseForOutput(ItemStack output) {
+        DecorativeInfo out = DecorativeInfo.from(output).orElse(null);
+        if (out == null) return Optional.empty();
+
+        // Prefer a base that matches (pattern, colour) -> needs only VARIANT press
+        Optional<ItemStack> byVariant = findDecorativeBase(out.namespace, out.pattern, out.colour, /*suffix*/null, out.postfix);
+        if (byVariant.isPresent()) return byVariant;
+
+        // Next: match (pattern, suffix) -> needs only COLOUR press
+        Optional<ItemStack> byColour = findDecorativeBase(out.namespace, out.pattern, /*colour*/null, out.suffix, out.postfix);
+        if (byColour.isPresent()) return byColour;
+
+        // Finally: match (colour, suffix) -> needs only PATTERN press
+        Optional<ItemStack> byPattern = findDecorativeBase(out.namespace, /*pattern*/null, out.colour, out.suffix, out.postfix);
+        return byPattern;
+    }
+
+    /**
+     * If the chosen base differs only by PATTERN, return the PressPattern that makes the output.
+     */
+    public Optional<ItemStack> getPressForOutput(ItemStack output) {
+        DecorativeInfo out = DecorativeInfo.from(output).orElse(null);
+        if (out == null) return Optional.empty();
+
+        // If there exists a base with same (colour, suffix), then we only need a pattern press.
+        Optional<ItemStack> base = findDecorativeBase(out.namespace, /*pattern*/null, out.colour, out.suffix, out.postfix);
+        return base.isPresent() ? findPressItem(PressPattern.class, out.pattern) : Optional.empty();
+    }
+
+    /**
+     * If the chosen base differs only by COLOUR, return the PressColour that makes the output.
+     */
+    public Optional<ItemStack> getColourForOutput(ItemStack output) {
+        DecorativeInfo out = DecorativeInfo.from(output).orElse(null);
+        if (out == null) return Optional.empty();
+
+        // If there exists a base with same (pattern, suffix), then we only need a colour press.
+        Optional<ItemStack> base = findDecorativeBase(out.namespace, out.pattern, /*colour*/null, out.suffix, out.postfix);
+        return base.isPresent() ? findPressItem(PressColour.class, out.colour) : Optional.empty();
+    }
+
+    /**
+     * If the chosen base differs only by VARIANT (suffix), return the PressVariant that makes the output.
+     */
+    public Optional<ItemStack> getVariantForOutput(ItemStack output) {
+        DecorativeInfo out = DecorativeInfo.from(output).orElse(null);
+        if (out == null) return Optional.empty();
+
+        // If there exists a base with same (pattern, colour), then we only need a variant press.
+        Optional<ItemStack> base = findDecorativeBase(out.namespace, out.pattern, out.colour, /*suffix*/null, out.postfix);
+        return base.isPresent() ? findPressItem(PressVariant.class, out.suffix) : Optional.empty();
+    }
+
+    /* ---------- internal lookups ---------- */
+
+    private Optional<ItemStack> findDecorativeBase(String namespace, String pattern, String colour, String suffix, String postfix) {
+        // pattern/colour/suffix can be null => "don't care"; postfix must match to ensure we stay within the same family.
+        for (Item item : ForgeRegistries.ITEMS) {
+            if (!(item instanceof DecorativeItem decoItem)) continue;
+            Block b = ((BlockItem) item).getBlock();
+            if (!(b instanceof IDecorativeBlock db)) continue;
+
+            ResourceLocation key = ForgeRegistries.BLOCKS.getKey(b);
+            if (key == null || !Objects.equals(key.getNamespace(), namespace)) continue;
+
+            // postfix must match exactly
+            if (!Objects.equals(db.getPostfix(), postfix)) continue;
+
+            String p = db.getPattern();
+            String c = db.getColour();
+            String s = db.getSuffix();
+            if (s != null && s.startsWith("-")) s = s.substring(1); // normalize like assemble()
+
+            if ((pattern == null || pattern.equals(p)) &&
+                    (colour == null || colour.equals(c)) &&
+                    (suffix == null || suffix.equals(s))) {
+                return Optional.of(new ItemStack(item));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<ItemStack> findPressItem(Class<? extends Press> cls, String desiredVariant) {
+        String want = desiredVariant == null ? "" : desiredVariant;
+        if (want.startsWith("-")) want = want.substring(1); // normalize
+
+        for (Item item : ForgeRegistries.ITEMS) {
+            if (!cls.isInstance(item)) continue;
+            Press press = (Press) item;
+            String v = press.getVariant();
+            if (v != null && v.startsWith("-")) v = v.substring(1);
+            if (Objects.equals(v, want)) {
+                return Optional.of(new ItemStack(item));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /* ---------- tiny value object to read decorative info from an ItemStack ---------- */
+
+    private static final class DecorativeInfo {
+        final String namespace;
+        final String pattern;
+        final String colour;
+        final String suffix;   // normalized: no leading '-'
+        final String postfix;
+
+        private DecorativeInfo(String ns, String p, String c, String s, String post) {
+            this.namespace = ns;
+            this.pattern = p;
+            this.colour = c;
+            this.suffix = s;
+            this.postfix = post;
+        }
+
+        static Optional<DecorativeInfo> from(ItemStack stack) {
+            if (stack.isEmpty() || !(stack.getItem() instanceof BlockItem bi)) return Optional.empty();
+            Block b = bi.getBlock();
+            if (!(b instanceof IDecorativeBlock db)) return Optional.empty();
+            ResourceLocation key = ForgeRegistries.BLOCKS.getKey(b);
+            if (key == null) return Optional.empty();
+
+            String s = db.getSuffix();
+            if (s != null && s.startsWith("-")) s = s.substring(1);
+
+            return Optional.of(new DecorativeInfo(
+                    key.getNamespace(),
+                    db.getPattern(),
+                    db.getColour(),
+                    s == null ? "" : s,
+                    db.getPostfix()
+            ));
         }
     }
 }

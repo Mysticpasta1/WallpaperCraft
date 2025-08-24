@@ -39,7 +39,7 @@ public class JustEnoughItems implements IModPlugin {
     @Override
     public void registerVanillaCategoryExtensions(IVanillaCategoryExtensionRegistration registration) {
         IExtendableRecipeCategory<CraftingRecipe, ICraftingCategoryExtension> cat = registration.getCraftingCategory();
-        cat.addCategoryExtension(PressCraftingRecipe.class, recipe -> new PressCraftingCategory());
+        cat.addCategoryExtension(PressCraftingRecipe.class, PressCraftingCategory::new);
     }
 
     @Override

@@ -50,7 +50,7 @@ public class DecorativeBlockPatterned extends HalfTransparentBlock implements ID
                                            final @NotNull LevelReader world,
                                            final @NotNull BlockPos pos,
                                            @Nullable final Entity entity) {
-        final SoundType base = state.getSoundType(world, pos, entity);
+        final SoundType base = super.getSoundType(state, world, pos, entity);
         if (!(entity instanceof Player player)) return base;
 
         var held = player.getMainHandItem();
